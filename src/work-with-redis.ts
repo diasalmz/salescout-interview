@@ -5,8 +5,39 @@
 
 // Use redis library
 
-async function manageRedis(): Promise<void> {
-    // Your code goes here
+const redis = require('redis');
+
+type RedisClient = {
+    set: (key: string, value: string, callback: (err: Error | null, reply?: string) => void) => void;
+    get: (key: string, callback: (err: Error | null, reply?: string) => void) => void;
+    quit: () => void;
+};
+
+async function manageRedis(testClient: RedisClient | null = null) {
+    const client = testClient || redis.createClient();
+
+    try {
+        await new Promise<void>((resolve, reject) => {
+            client.set('key', 'value', (err: Error | null, reply?: string) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+
+        const value = await new Promise<string>((resolve, reject) => {
+            client.get('key', (err: Error | null, reply?: string) => {
+                if (err) reject(err);
+                if (reply) resolve(reply);
+                else reject(new Error('No value found'));
+            });
+        });
+
+        return value;
+    } finally {
+        if (!testClient) {
+            client.quit();
+        }
+    }
 }
 
-module.exports = { manageRedis };
+export { manageRedis };

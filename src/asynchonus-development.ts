@@ -17,8 +17,13 @@ type RequestsResult = {
 }
 
 async function fetchAll(urls: string[]): Promise<RequestsResult[]> {
-    //Your code goes here
-    return [];
+    const axios = require('axios');
+    const promises = urls.map(url => axios.get(url));
+    const results = await Promise.all(promises);
+    return results.map(result => ({
+        data: result.data,
+        status: result.status
+    }));
 }
 
 module.exports = { fetchAll };

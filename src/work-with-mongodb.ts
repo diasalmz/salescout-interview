@@ -5,14 +5,36 @@
 // 4. Finds users with duplicate emails.
 
 // Use Mongoose library
+import mongoose from 'mongoose';
 
 type DuplicatedUsers = {
     email: string
 }
 
 async function manageUsers(): Promise<DuplicatedUsers[]> {
-    // Your code goes here   
-    return []
+    const User = mongoose.model('User');
+
+    const duplicates = await User.aggregate([
+        {
+            $group: {
+                _id: '$email',
+                count: { $sum: 1 }
+            }
+        },
+        {
+            $match: {
+                count: { $gt: 1 }
+            }
+        },
+        {
+            $project: {
+                _id: 0,
+                email: '$_id'
+            }
+        }
+    ]);
+
+    return duplicates;
 }
 
 module.exports = { manageUsers }
